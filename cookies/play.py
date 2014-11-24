@@ -1,11 +1,23 @@
 import os
 import webapp2
 import jinja2
+import hashlib
 
 from google.appengine.ext import db
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates') #documents/Code/helloworld/cookies/templates
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
+
+def hash_str(s):
+    return hashlib.md5(s).hexdigest()
+
+def make_secure_val(s):
+    return "%s,%s" % (s, hash_str(s))
+
+def check_secure_val(h):
+    val = h.split(',')[0]
+    if h == make_secure_val(val):
+        return val
 
 class Handler(webapp2.RequestHandler):
     def write(self, *a, **kw):
