@@ -24,6 +24,8 @@ class Handler(webapp2.RequestHandler):
 
 IP_URL = "http://api.hostip.info/?ip="
 def get_coords(ip):
+    ip = "4.2.2.2"
+    ip = "23.24.209.141"
     url = IP_URL + ip
     content = None
     try:
