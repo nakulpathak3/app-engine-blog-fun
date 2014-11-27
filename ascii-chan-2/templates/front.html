@@ -57,6 +57,12 @@
         font-size: 17px;
     }
 
+    .maps{
+        position: absolute;
+        right: 15%;
+        top: 18%;
+    }
+
     </style>
 
     <body>
@@ -76,7 +82,9 @@
 
             <input type="submit">
         </form>
-
+    {% if img_url %}
+        <img class="maps" src="{{img_url}}">
+    {% endif %}
     <hr>
 
     {% for art in arts %}
