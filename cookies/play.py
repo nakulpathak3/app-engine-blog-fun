@@ -2,6 +2,9 @@ import os
 import webapp2
 import jinja2
 import hashlib
+import hmac
+
+from secret import *
 
 from google.appengine.ext import db
 
@@ -9,13 +12,13 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates') #documents/C
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
 
 def hash_str(s):
-    return hashlib.md5(s).hexdigest()
+    return hmac.new(secret, s).hexdigest()
 
 def make_secure_val(s):
-    return "%s,%s" % (s, hash_str(s))
+    return "%s|%s" % (s, hash_str(s))
 
 def check_secure_val(h):
-    val = h.split(',')[0]
+    val = h.split('|')[0]
     if h == make_secure_val(val):
         return val
 
@@ -27,7 +30,7 @@ class Handler(webapp2.RequestHandler):
         t = jinja_env.get_template(template)
         return t.render(params)
 
-    def render(self, templates, **kw):
+    def render(self, template, **kw):
         self.write(self.render_str(template, **kw))
 
 class MainPage(Handler):
@@ -41,15 +44,16 @@ class MainPage(Handler):
                 visits = int(cookie_val)
 
         visits += 1
-
         new_cookie_val = make_secure_val(str(visits))
         self.response.headers.add_header('Set-Cookie', 'visits=%s' % new_cookie_val)
+        self.write("You've been here %s times!\n" % visits)
 
-        if visits > 10000:
-            self.write("You da best bro")
-        else:
-            self.write("You've been here %s times!\n" % visits)
+class SignUp(Handler):
+    def get(self):
+        self.render("signup.html")
 
-app = webapp2.WSGIApplication( [('/', MainPage)]  , debug = True )
+app = webapp2.WSGIApplication( [('/', MainPage),
+                                ('/signup', SignUp)]
+                                 , debug = True )
 
 
