@@ -3,6 +3,7 @@ import webapp2
 import jinja2
 import time
 import urllib2
+import logging
 from xml.dom import minidom
 
 from google.appengine.ext import db
@@ -52,12 +53,24 @@ class Art(db.Model):
     created = db.DateTimeProperty(auto_now_add = True)
     coords = db.GeoPtProperty()
 
-class MainPage(Handler):
+cache = {}
 
-    def render_front(self, title="", art="", error=""):
+def top_arts():
+    key = 'top'
+    if key in cache:
+        arts = cache[key]
+    else:
+        logging.error("DB QUERY")
         arts = db.GqlQuery("SELECT * FROM Art "
                             "ORDER BY created DESC ")
         arts = list(arts) #prevents running of  multiple queries. Local copy of datastore to access as much as you want available now/
+        cache[key] = arts
+    return arts
+
+class MainPage(Handler):
+
+    def render_front(self, title="", art="", error=""):
+        arts = top_arts()
         points = []
         for a in arts:
             if a.coords:
